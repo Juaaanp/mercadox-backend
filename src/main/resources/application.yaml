@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: mercadox
+  config:
+    import: optional:file:.env[.properties]  
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/mercadox?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Bogota
+    username: root
+    password: sasa
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.MySQLDialect
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: America/Bogota
+
+jwt:
+  secret: "Zm9yX3Rlc3RpbmdfcHVycG9zZXNfb25seV9zZWNyZXRfa2V5XzMyYnl0ZXM="
+  accessTokenExpiration: 9000000 # 150 minutos
+
+  # ============================================
+  # Email service
+  # ============================================   
+sendgrid:
+  api-key: ${SENDGRID_API_KEY}
+  from-email: mercadox@verygana.com
+  from-name: Mercadox
+  support-email: soporteMercadox@verygana.com
+
+logging:
+  level:
+    root: INFO
+    com.mercadox: DEBUG
+    com.mercadox.repositories: DEBUG
+    com.mercadox.services: DEBUG
+    com.mercadox.services.storage: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.security: DEBUG
