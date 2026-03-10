@@ -6,8 +6,8 @@ spring:
 
   datasource:
     url: jdbc:mysql://localhost:3306/mercadox?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Bogota
-    username: root
-    password: sasa
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:sasa}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -23,7 +23,7 @@ spring:
 
 jwt:
   secret: "Zm9yX3Rlc3RpbmdfcHVycG9zZXNfb25seV9zZWNyZXRfa2V5XzMyYnl0ZXM="
-  accessTokenExpiration: 9000000 # 150 minutos
+  accessTokenExpiration: 900000000 # 15000 minutos
 
   # ============================================
   # Email service

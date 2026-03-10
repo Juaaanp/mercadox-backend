@@ -40,5 +40,4 @@ public class PurchaseController {
     public ResponseEntity<Page<PurchaseResponseDTO>> getPurchases(@AuthenticationPrincipal CustomUserDetails user, @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(purchaseService.getUserPurchases(user.getId(), pageable));
     }
-
 }

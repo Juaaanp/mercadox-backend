@@ -27,8 +27,8 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"user", "items"})  // ⭐ Excluir relaciones
-@EqualsAndHashCode(exclude = {"user", "items"})  // ⭐ Excluir relaciones
+@ToString(exclude = {"user", "items"})
+@EqualsAndHashCode(exclude = {"user", "items"})
 public class Purchase {
     
     @Id
