@@ -117,10 +117,10 @@ public class PurchaseServiceImpl implements PurchaseService {
         
         Purchase finalPurchase = purchaseRepository.save(purchaseWithItems);
 
-        log.info("Contact Email (DTO sent):" + request.getContactEmail());
+        log.info("Contact Email (DTO sent):" + user.getEmail());
 
         // Envio de codigos de productos por correo al comprador (emailService)
-        emailService.sendPurchaseConfirmation(finalPurchase, request.getContactEmail());
+        emailService.sendPurchaseConfirmation(finalPurchase, user.getEmail());
 
         log.info("Purchase created succesfully. id: {}, Total: {}", finalPurchase.getId(),
                 finalPurchase.getTotal());
@@ -130,11 +130,12 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     // Metodos privados para crear una compra
     private Purchase createBasePurchase(String referenceId, Long userId, CreatePurchaseRequestDTO request) {
+        User user = userService.getUserById(userId);
         return Purchase.builder()
                 .referenceId(referenceId)
-                .user(userService.getUserById(userId))
+                .user(user)
                 .status(PurchaseStatus.PENDING)
-                .contactEmail(request.getContactEmail())
+                .contactEmail(user.getEmail())
                 .build();
     }
 
