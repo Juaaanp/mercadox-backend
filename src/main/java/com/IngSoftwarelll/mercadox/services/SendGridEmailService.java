@@ -38,6 +38,9 @@ public class SendGridEmailService implements EmailService {
     @Value("${sendgrid.support-email}")
     private String supportEmail;
 
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
+
     private final SendGrid sendGrid;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -236,4 +239,44 @@ public class SendGridEmailService implements EmailService {
                 .replace("'", "&#x27;");
     }
 
+
+    @Override
+    public void sendPasswordResetEmail(String to, String token) {
+        String resetLink = frontendUrl + "/reset-password?token=" + token;
+
+        Email from = new Email(fromEmail);
+        Email toEmail = new Email(to);
+        String subject = "Recuperación de contraseña - MercadoX";
+
+        String htmlBody = """
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+                <h2>Recuperación de contraseña</h2>
+                <p>Recibimos una solicitud para restablecer tu contraseña.</p>
+                <p>
+                    <a href="%s"
+                       style="background-color:#4CAF50; color:white; padding:12px 24px;
+                              text-decoration:none; border-radius:4px; display:inline-block;">
+                        Restablecer contraseña
+                    </a>
+                </p>
+                <p>Este enlace expira en <strong>30 minutos</strong>.</p>
+                <p>Si no solicitaste esto, ignora este correo.</p>
+            </div>
+            """.formatted(resetLink);
+
+        Content content = new Content("text/html", htmlBody);
+        Mail mail = new Mail(from, subject, toEmail, content);
+
+        try {
+            Request request = new Request();
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            sendGrid.api(request);
+            log.info("Email de recuperación enviado a: {}", to);
+        } catch (Exception e) {
+            log.error("Error enviando email a {}: {}", to, e.getMessage());
+            throw new RuntimeException("Error enviando email de recuperación");
+        }
+    }
 }

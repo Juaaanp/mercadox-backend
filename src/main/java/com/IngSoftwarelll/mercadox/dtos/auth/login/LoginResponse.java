@@ -1,4 +1,4 @@
-package com.IngSoftwarelll.mercadox.dtos.auth;
+package com.IngSoftwarelll.mercadox.dtos.auth.login;
 
 import com.IngSoftwarelll.mercadox.models.enums.UserRole;
 
