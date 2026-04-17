@@ -2,7 +2,7 @@ spring:
   application:
     name: mercadox
   config:
-    import: optional:file:.env[.properties]  
+    import: optional:file:.env[.properties]
 
   datasource:
     url: jdbc:mysql://localhost:3306/mercadox?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Bogota
@@ -33,6 +33,8 @@ sendgrid:
   from-email: mercadox@verygana.com
   from-name: Mercadox
   support-email: soporteMercadox@verygana.com
+app:
+  frontend-url: http://localhost:3000
 
 logging:
   level:
