@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.IngSoftwarelll.mercadox.models.PasswordResetToken;
 import com.IngSoftwarelll.mercadox.models.User;
-import com.IngSoftwarelll.mercadox.models.enums.UserRole;
 import com.IngSoftwarelll.mercadox.repositories.PasswordResetTokenRepository;
 import com.IngSoftwarelll.mercadox.repositories.UserRepository;
 import com.IngSoftwarelll.mercadox.services.interfaces.AuthService;
