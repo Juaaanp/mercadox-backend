@@ -6,5 +6,6 @@ public class PublicPaths {
         "/products",
         "/productCategories/**",
         "/products/filter"
-    }; 
+
+    };
 }
