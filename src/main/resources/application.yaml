@@ -29,15 +29,18 @@ spring:
 
 jwt:
   secret: "Zm9yX3Rlc3RpbmdfcHVycG9zZXNfb25seV9zZWNyZXRfa2V5XzMyYnl0ZXM="
-  accessTokenExpiration: 900000000 # 15000 minutos
+  accessTokenExpiration: 9000000 # 150 minutos
 
   # ============================================
   # Email service
   # ============================================   
 sendgrid:
   api-key: ${SENDGRID_API_KEY}
-  from-email: juanp.rodriguezg@uqvirtual.edu.co
+  from-email: mercadox@verygana.com
   from-name: Mercadox
+  support-email: soporteMercadox@verygana.com
+app:
+  frontend-url: http://localhost:3000
 
 logging:
   level:

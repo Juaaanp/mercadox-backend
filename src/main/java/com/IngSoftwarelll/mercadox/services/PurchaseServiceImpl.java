@@ -91,6 +91,8 @@ public class PurchaseServiceImpl implements PurchaseService {
         // 5. Validar saldo del comprador
         User user = userService.getUserById(userId);
 
+        log.info("Validando fondos -> Saldo del usuario: {} | Total de la compra calculada: {}", user.getBalance(), purchaseWithItems.getTotal());
+
         if (user.getBalance().compareTo(purchaseWithItems.getTotal()) < 0) {
             releaseCodes(purchaseWithItems);
             throw new InsufficientFundsException();
