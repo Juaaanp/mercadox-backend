@@ -1,5 +1,7 @@
 package com.IngSoftwarelll.mercadox.services;
 
+import java.math.BigDecimal;
+
 import org.hibernate.ObjectNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,15 @@ public class UserServiceImpl implements UserService{
             throw new IllegalArgumentException("User id must be positive");
         }
         return userRepository.findById(userId).orElseThrow(() -> new ObjectNotFoundException("User id : " + userId + " not found. ", User.class));
+    }
+
+    @Override
+    public BigDecimal getBalance(Long userId) {
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("User id must be positive");
+        }
+
+        return BigDecimal.valueOf(userRepository.findBalanceByUserId(userId));
     }
     
 }
