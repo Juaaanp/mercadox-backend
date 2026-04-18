@@ -215,7 +215,7 @@ public class SendGridEmailService implements EmailService {
         html.append(String.format("<p>Contáctanos en <a href='mailto:%s'>%s</a></p>",
                 supportEmail, supportEmail));
         html.append("<p style='margin-top:15px;font-size:12px;color:#999;'>");
-        html.append("© 2025 VeryGana. Todos los derechos reservados.");
+        html.append("© 2026 Mercadox. Todos los derechos reservados.");
         html.append("</p>");
         html.append("</div>");
 
@@ -242,11 +242,11 @@ public class SendGridEmailService implements EmailService {
 
     @Override
     public void sendPasswordResetEmail(String to, String token) {
-        String resetLink = frontendUrl + "/reset-password?token=" + token;
+        String resetLink = frontendUrl + "/recover-password/reset?token=" + token;
 
         Email from = new Email(fromEmail);
         Email toEmail = new Email(to);
-        String subject = "Recuperación de contraseña - MercadoX";
+        String subject = "Recuperación de contraseña - Mercadox";
 
         String htmlBody = """
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">

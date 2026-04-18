@@ -30,7 +30,7 @@ jwt:
   # ============================================   
 sendgrid:
   api-key: ${SENDGRID_API_KEY}
-  from-email: mercadox@verygana.com
+  from-email: juanp.rodriguezg@uqvirtual.edu.co
   from-name: Mercadox
   support-email: soporteMercadox@verygana.com
 app:
