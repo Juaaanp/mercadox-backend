@@ -1,13 +1,19 @@
+server:
+  port: ${PORT:8080}
+
 spring:
   application:
     name: mercadox
-  config:
-    import: optional:file:.env[.properties]  
+  # config:
+  #   import: optional:file:.env[.properties]  
 
   datasource:
-    url: jdbc:mysql://localhost:3306/mercadox?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Bogota
+    # url: jdbc:mysql://mercadox-db.ctoyecue2hb3.us-east-2.rds.amazonaws.com:3306/mercadox?useSSL=false&allowPublicKeyRetrieval=true
+    # username: root
+    # password: 6bckDumTc71w2Ys3dO5B
+    url: ${DB_URL:jdbc:mysql://mercadox-db.ctoyecue2hb3.us-east-2.rds.amazonaws.com:3306/mercadox?useSSL=false&allowPublicKeyRetrieval=true}
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:sasa}
+    password: ${DB_PASSWORD:6bckDumTc71w2Ys3dO5B}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
