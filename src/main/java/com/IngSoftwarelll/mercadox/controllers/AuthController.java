@@ -80,6 +80,6 @@ public class AuthController {
     }
     @GetMapping("/test")
     public ResponseEntity<String> test(@AuthenticationPrincipal CustomUserDetails user) {
-        return ResponseEntity.ok("Id del usuario autenticado: " + user.getId());
+        return ResponseEntity.ok("Hello!");
     }
 }

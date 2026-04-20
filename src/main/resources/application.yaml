@@ -4,8 +4,8 @@ server:
 spring:
   application:
     name: mercadox
-  # config:
-  #   import: optional:file:.env[.properties]  
+  config:
+    import: optional:file:.env[.properties]  
 
   datasource:
     # url: jdbc:mysql://mercadox-db.ctoyecue2hb3.us-east-2.rds.amazonaws.com:3306/mercadox?useSSL=false&allowPublicKeyRetrieval=true

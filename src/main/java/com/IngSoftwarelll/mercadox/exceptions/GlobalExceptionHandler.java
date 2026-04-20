@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -35,6 +36,13 @@ public class GlobalExceptionHandler {
             BadCredentialsException ex, WebRequest request) {
         log.warn("Bad credentials: {}", ex.getMessage());
         return buildError(HttpStatus.UNAUTHORIZED, "Invalid credentials", request);
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAuthorizationDeniedException(
+            AuthorizationDeniedException ex, WebRequest request) {
+        log.warn("Authorization denied: {}", ex.getMessage());
+        return buildError(HttpStatus.FORBIDDEN, "Access denied", request);
     }
 
     @ExceptionHandler(InsufficientStockException.class)
