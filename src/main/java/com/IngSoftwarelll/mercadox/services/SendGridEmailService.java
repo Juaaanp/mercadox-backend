@@ -244,7 +244,7 @@ public class SendGridEmailService implements EmailService {
     public void sendPasswordResetEmail(String to, String token) {
         String resetLink = frontendUrl + "/recover-password/reset?token=" + token;
 
-        Email from = new Email(fromEmail);
+        Email from = new Email(fromEmail, fromName);
         Email toEmail = new Email(to);
         String subject = "Recuperación de contraseña - Mercadox";
 
