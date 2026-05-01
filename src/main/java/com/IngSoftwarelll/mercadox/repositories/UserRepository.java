@@ -13,7 +13,7 @@ import com.IngSoftwarelll.mercadox.models.User;
 public interface UserRepository extends JpaRepository<User, Long> {
     
     Optional<User> findByEmail(String email);
-
+    Optional<User> findByPhoneNumber(String phoneNumber);
     @Query("""
             SELECT u.balance
             FROM User u

@@ -19,6 +19,9 @@ public interface SupportTicketRepository extends JpaRepository<SupportTicket, Lo
     // Cliente: ver sus propios tickets paginados
     Page<SupportTicket> findByUserId(Long userId, Pageable pageable);
 
+    // Cliente: ver sus propios tickets por status
+    java.util.List<SupportTicket> findByUserIdAndStatusIn(Long userId, java.util.List<TicketStatus> statuses);
+
     // Admin: filtrar por status
     Page<SupportTicket> findByStatus(TicketStatus status, Pageable pageable);
 

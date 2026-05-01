@@ -14,7 +14,7 @@ spring:
     url: ${DB_URL:jdbc:mysql://mercadox-db.ctoyecue2hb3.us-east-2.rds.amazonaws.com:3306/mercadox?useSSL=false&allowPublicKeyRetrieval=true}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:6bckDumTc71w2Ys3dO5B}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    # driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
@@ -29,7 +29,7 @@ spring:
 
 jwt:
   secret: "Zm9yX3Rlc3RpbmdfcHVycG9zZXNfb25seV9zZWNyZXRfa2V5XzMyYnl0ZXM="
-  accessTokenExpiration: 9000000 # 150 minutos
+  accessTokenExpiration: 90000000 # 150 minutos
 
   # ============================================
   # Email service
@@ -40,7 +40,7 @@ sendgrid:
   from-name: Mercadox
   support-email: soporteMercadox@verygana.com
 app:
-  frontend-url: http://localhost:3000
+  frontend-url: https://main.d2myg0ff4z513l.amplifyapp.com
 
 logging:
   level:

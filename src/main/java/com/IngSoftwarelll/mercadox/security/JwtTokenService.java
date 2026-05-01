@@ -25,7 +25,7 @@ public class JwtTokenService {
 
     public JwtTokenService(
             @Value("${jwt.secret}") String base64Secret,
-            @Value("${jwt.access-token.expiration:900000}") long accessTokenExpirationMs) {  // 15 minutos por defecto
+            @Value("${jwt.access-token.expiration:9000000}") long accessTokenExpirationMs) {  // 15 minutos por defecto
 
         byte[] keyBytes = Decoders.BASE64.decode(base64Secret);
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);

@@ -8,6 +8,8 @@ import java.util.UUID;
 import com.IngSoftwarelll.mercadox.dtos.auth.forgotpassword.ForgotPasswordRequest;
 import com.IngSoftwarelll.mercadox.dtos.auth.forgotpassword.ResetPasswordRequest;
 import com.IngSoftwarelll.mercadox.dtos.auth.register.RegisterRequest;
+import com.IngSoftwarelll.mercadox.exceptions.BusinessException;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +38,10 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public void register(RegisterRequest request) {
         if (userRepository.findByEmail(request.email()).isPresent()) {
-            throw new IllegalArgumentException("El correo ya está registrado");
+            throw new BusinessException("El correo ya está registrado");
+        }
+        if (userRepository.findByPhoneNumber(request.phoneNumber()).isPresent()) {
+            throw new BusinessException("El número de teléfono ya está registrado");
         }
         log.info("tipe registrado: {}", request.role());
         User user = new User();
