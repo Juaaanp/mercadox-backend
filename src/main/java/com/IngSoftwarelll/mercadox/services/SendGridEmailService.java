@@ -184,6 +184,7 @@ public class SendGridEmailService implements EmailService {
 
         for (PurchaseItem item : purchase.getItems()) {
             html.append("<div class='product-item'>");
+            html.append(String.format("<p><strong>id del producto:</strong> %s<p>", item.getId()));
             html.append(String.format("<div class='product-name'>%s</div>",
                     escapeHtml(item.getProduct().getName())));
             html.append(String.format("<div class='product-price'>Precio: $%,.0f COP</div>",

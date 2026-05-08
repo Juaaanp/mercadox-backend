@@ -8,9 +8,6 @@ import java.util.List;
 import com.IngSoftwarelll.mercadox.exceptions.InsufficientStockException;
 import com.IngSoftwarelll.mercadox.models.enums.StockStatus;
 
-
-
-
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -23,11 +20,16 @@ import lombok.ToString;
 @Setter
 @ToString(exclude = {"stockItems", "productCategory" })
 @EqualsAndHashCode(exclude = {"stockItems", "productCategory" })
+
 public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "adminId", nullable = false)
+    private User admin;
 
     @Column(nullable = false, length = 255)
     private String name;

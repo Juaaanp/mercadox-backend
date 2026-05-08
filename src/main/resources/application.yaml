@@ -31,6 +31,12 @@ jwt:
   secret: "Zm9yX3Rlc3RpbmdfcHVycG9zZXNfb25seV9zZWNyZXRfa2V5XzMyYnl0ZXM="
   accessTokenExpiration: 90000000 # 150 minutos
 
+#Storage
+cloudinary:
+  cloud_name: ${CLOUDINARY_CLOUD_NAME}
+  api_key: ${CLOUDINARY_API_KEY}
+  secret_key: ${CLOUDINARY_API_SECRET_KEY}
+
   # ============================================
   # Email service
   # ============================================   

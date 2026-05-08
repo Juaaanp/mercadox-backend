@@ -1,9 +1,11 @@
 package com.IngSoftwarelll.mercadox.services;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Set;
 
-import org.hibernate.ObjectNotFoundException;
+import com.IngSoftwarelll.mercadox.exceptions.ResourceNotFoundException;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -12,12 +14,20 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.IngSoftwarelll.mercadox.dtos.EntityCreatedResponseDTO;
+import com.IngSoftwarelll.mercadox.dtos.products.requests.CreateProductRequestDTO;
 import com.IngSoftwarelll.mercadox.dtos.products.responses.ProductResponseDTO;
 import com.IngSoftwarelll.mercadox.dtos.products.responses.ProductSummaryResponseDTO;
+import com.IngSoftwarelll.mercadox.exceptions.UnauthorizedException;
 import com.IngSoftwarelll.mercadox.mappers.ProductMapper;
 import com.IngSoftwarelll.mercadox.models.Product;
+import com.IngSoftwarelll.mercadox.models.ProductStock;
+import com.IngSoftwarelll.mercadox.models.User;
+import com.IngSoftwarelll.mercadox.models.enums.UserRole;
 import com.IngSoftwarelll.mercadox.repositories.ProductRepository;
+import com.IngSoftwarelll.mercadox.services.interfaces.ProductCategoryService;
 import com.IngSoftwarelll.mercadox.services.interfaces.ProductService;
+import com.IngSoftwarelll.mercadox.services.interfaces.UserService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,9 +38,44 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ProductServiceImpl implements ProductService {
 
+    private final UserService userService;
+    private final ProductCategoryService productCategoryService;
     private final ProductRepository productRepository;
-
     private final ProductMapper productMapper;
+    private final CloudinaryService cloudinaryService;
+
+    @Override
+    public EntityCreatedResponseDTO createProduct(Long adminId, CreateProductRequestDTO request, MultipartFile image) {
+        User admin = userService.getUserById(adminId);
+        if (admin.getRole() != UserRole.ADMIN) {
+            throw new UnauthorizedException("Only admins can create products");
+        }
+
+        String imageUrl = cloudinaryService.uploadImage(image);
+
+        Product product = productMapper.toProduct(request);
+        product.setAdmin(admin);
+        product.setImageUrl(imageUrl);
+        product.setProductCategory(productCategoryService.getById(request.getProductCategoryId()));
+
+        for (ProductStock code : product.getStockItems()) {
+            code.setProduct(product);
+        }
+
+        productRepository.save(product);
+
+        return new EntityCreatedResponseDTO(product.getId(), "Product created Succesfully", Instant.now());
+    }
+
+    @Override
+    public void deleteProduct(Long adminId, Long productId) {
+        User admin = userService.getUserById(adminId);
+        if (admin.getRole() != UserRole.ADMIN) {
+            throw new UnauthorizedException("Only admins can delete products");
+        }
+
+        productRepository.deleteById(productId);
+    }
 
     @Override
     public Product getById(Long productId) {
@@ -40,7 +85,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         return productRepository.findById(productId).orElseThrow(
-                () -> new ObjectNotFoundException("Product with id: " + productId + " not found", Product.class));
+                () -> new ResourceNotFoundException("Product with id: " + productId + " not found"));
     }
     
     @Override
@@ -89,9 +134,11 @@ public class ProductServiceImpl implements ProductService {
             throw new IllegalArgumentException("the product id must be positive");
         }
         Product product = productRepository.findById(productId).orElseThrow(
-                () -> new ObjectNotFoundException("the product with id: " + productId + " not found", Product.class));
+                () -> new ResourceNotFoundException("Product with id: " + productId + " not found"));
         ProductResponseDTO response = productMapper.toProductResponseDTO(product);
         return response;
     }
+
+   
 
 }

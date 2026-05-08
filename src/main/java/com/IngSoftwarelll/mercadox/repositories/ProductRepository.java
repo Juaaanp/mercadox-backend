@@ -1,6 +1,7 @@
 package com.IngSoftwarelll.mercadox.repositories;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +15,12 @@ import com.IngSoftwarelll.mercadox.models.Product;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
+        @Query("""
+                SELECT p FROM Product p
+                WHERE p.id = :productId
+                AND p.admin.id = :adminId
+                        """)
+        Optional<Product> findByIdAndAdminId (@Param("productId") Long productId, @Param("adminId") Long adminId);
 
         @Query("SELECT p FROM Product p " +
                         "JOIN FETCH p.productCategory c ")
