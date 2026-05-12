@@ -2,9 +2,12 @@ name: CI - Build & Test — Mercadox
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main  ]
+    branches: [ main, develop ]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   unit-tests:
@@ -48,7 +51,7 @@ jobs:
   integration-tests:
     name: Pruebas de Integración (MockMvc + H2)
     runs-on: ubuntu-latest
-    needs: unit-tests   # Solo corre si las unitarias pasan
+    needs: unit-tests
 
     steps:
       - name: Checkout
