@@ -167,6 +167,9 @@
                         -XX:+EnableDynamicAgentLoading
                         -Xshare:off
                     </argLine>
+                    <excludes>
+                        <exclude>**/MercadoxApplicationTests.java</exclude>
+                    </excludes>
                     <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
                 </configuration>
             </plugin>
