@@ -11,12 +11,8 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     show-sql: false
 
-  # Desactiva SendGrid en tests — ningún correo real se envía
-  autoconfigure:
-    exclude: com.sendgrid.spring.boot.SendGridAutoConfiguration
-
 jwt:
-  secret: test-secret-key-for-ci-minimum-32-bytes
+  secret: "dGVzdC1zZWNyZXQta2V5LWZvci1jaS1taW5pbXVtLTMyLWJ5dGVz"
   accessTokenExpiration: 9000000
 
 sendgrid:

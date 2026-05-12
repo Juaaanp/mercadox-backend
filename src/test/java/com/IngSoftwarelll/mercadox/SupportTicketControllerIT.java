@@ -1,21 +1,21 @@
 package com.IngSoftwarelll.mercadox;
 
-
 import com.IngSoftwarelll.mercadox.dtos.ticket.request.*;
 import com.IngSoftwarelll.mercadox.models.*;
 import com.IngSoftwarelll.mercadox.models.enums.*;
 import com.IngSoftwarelll.mercadox.repositories.*;
+import com.IngSoftwarelll.mercadox.security.CustomUserDetails;
 import com.IngSoftwarelll.mercadox.security.JwtTokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,6 +28,7 @@ import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 @TestConfiguration
 class TestConfig {
     @Bean
@@ -37,10 +38,12 @@ class TestConfig {
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 }
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Transactional  // rollback automático tras cada test — BD limpia entre tests
+@Transactional
+@Import(TestConfig.class)
 @DisplayName("SupportTicketController — Pruebas de integración")
 class SupportTicketControllerIT {
 
@@ -48,20 +51,22 @@ class SupportTicketControllerIT {
     @Autowired ObjectMapper objectMapper;
     @Autowired JwtTokenService jwtTokenService;
 
-    // Repositorios para sembrar datos
     @Autowired UserRepository userRepository;
     @Autowired PurchaseRepository purchaseRepository;
     @Autowired PurchaseItemRepository purchaseItemRepository;
     @Autowired ProductRepository productRepository;
+    @Autowired ProductCategoryRepository productCategoryRepository;
     @Autowired SupportTicketRepository ticketRepository;
-
+    @Autowired ProductStockRepository productStockRepository;
     private String consumerToken;
     private String adminToken;
 
-    // IDs sembrados — se usan en los tests
     private Long consumerTicketId;
     private Long purchaseId;
     private Long purchaseItemId;
+    // Item exclusivo para IT-01 (crear ticket nuevo sin colisión)
+    private Long freshPurchaseItemId;
+    private Long productStockId;
 
     @BeforeEach
     void setUp() {
@@ -82,34 +87,64 @@ class SupportTicketControllerIT {
         admin.setBalance(BigDecimal.ZERO);
         admin = userRepository.save(admin);
 
-        // ── Tokens JWT ────────────────────────────────────────────────────────
+        // ── Authorities ───────────────────────────────────────────────────────
+        List<SimpleGrantedAuthority> consumerAuthorities =
+                List.of(new SimpleGrantedAuthority("CONSUMER"));
+        List<SimpleGrantedAuthority> adminAuthorities =
+                List.of(new SimpleGrantedAuthority("ADMIN"));
+
+        // ── CustomUserDetails ─────────────────────────────────────────────────
+        CustomUserDetails consumerDetails = new CustomUserDetails(consumer, consumerAuthorities);
+        CustomUserDetails adminDetails = new CustomUserDetails(admin, adminAuthorities);
+
+        // ── JWT Tokens ────────────────────────────────────────────────────────
         UsernamePasswordAuthenticationToken consumerAuth =
-                new UsernamePasswordAuthenticationToken(
-                        consumer.getEmail(), null,
-                        List.of(new SimpleGrantedAuthority("CONSUMER"))
-                );
+                new UsernamePasswordAuthenticationToken(consumerDetails, null, consumerAuthorities);
         consumerToken = jwtTokenService.generateAccessToken(consumerAuth);
 
         UsernamePasswordAuthenticationToken adminAuth =
-                new UsernamePasswordAuthenticationToken(
-                        admin.getEmail(), null,
-                        List.of(new SimpleGrantedAuthority("ADMIN"))
-                );
+                new UsernamePasswordAuthenticationToken(adminDetails, null, adminAuthorities);
         adminToken = jwtTokenService.generateAccessToken(adminAuth);
 
-        // ── Compra y PurchaseItem ─────────────────────────────────────────────
+        // ── ProductCategory ───────────────────────────────────────────────────
+        ProductCategory category = new ProductCategory();
+        category.setName("Categoría de prueba");
+        category = productCategoryRepository.save(category);
+
+        // ── Product ───────────────────────────────────────────────────────────
+        Product product = new Product();
+        product.setAdmin(admin);
+        product.setName("Producto de prueba");
+        product.setImageUrl("https://img.example.com/test.jpg");
+        product.setPrice(new BigDecimal("50000"));
+        product.setProductCategory(category);
+        product.setDescription("Descripción de prueba");
+        product = productRepository.save(product);
+
+
+        ProductStock stock = ProductStock.builder()
+                .product(product)
+                .code("STOCK-TEST-001")
+                .status(StockStatus.AVAILABLE)
+                .build();
+        stock = productStockRepository.save(stock);
+        productStockId = stock.getId();
+
+        // ── Compra ────────────────────────────────────────────────────────────
         Purchase purchase = Purchase.builder()
                 .referenceId("REF-IT-001")
                 .user(consumer)
-                .total(new BigDecimal("50000"))
+                .total(new BigDecimal("100000"))
                 .status(PurchaseStatus.COMPLETED)
                 .contactEmail(consumer.getEmail())
                 .build();
         purchase = purchaseRepository.save(purchase);
         purchaseId = purchase.getId();
 
+        // ── PurchaseItem usado por el ticket sembrado ──────────────────────────
         PurchaseItem item = PurchaseItem.builder()
                 .purchase(purchase)
+                .product(product)
                 .priceAtPurchase(new BigDecimal("50000"))
                 .quantity(1)
                 .subtotal(new BigDecimal("50000"))
@@ -119,13 +154,26 @@ class SupportTicketControllerIT {
         item = purchaseItemRepository.save(item);
         purchaseItemId = item.getId();
 
-        // ── Ticket del consumer (dueño = consumer) ────────────────────────────
+        // ── PurchaseItem fresco (sin ticket) para IT-01 ───────────────────────
+        PurchaseItem freshItem = PurchaseItem.builder()
+                .purchase(purchase)
+                .product(product)
+                .priceAtPurchase(new BigDecimal("50000"))
+                .quantity(1)
+                .subtotal(new BigDecimal("50000"))
+                .deliveredCode("DDDD-EEEE-FFFF")
+                .status(PurchaseItemStatus.DELIVERED)
+                .build();
+        freshItem = purchaseItemRepository.save(freshItem);
+        freshPurchaseItemId = freshItem.getId();
+
+        // ── Ticket sembrado en estado VALIDATING (requerido por resolve/reject) ─
         SupportTicket ticket = SupportTicket.builder()
                 .user(consumer)
                 .purchase(purchase)
                 .purchaseItem(item)
                 .type(TicketType.REPLACEMENT)
-                .status(TicketStatus.OPEN)
+                .status(TicketStatus.VALIDATING)   // ← cambiado de OPEN a VALIDATING
                 .reason("El código no funciona")
                 .build();
         ticket = ticketRepository.save(ticket);
@@ -142,9 +190,10 @@ class SupportTicketControllerIT {
         @Test
         @DisplayName("IT-01 | CONSUMER crea ticket — 201 Created — CP-21")
         void createTicket_returns201() throws Exception {
+            // Usa el item fresco que no tiene ticket asociado
             CreateTicketRequest req = new CreateTicketRequest(
                     purchaseId,
-                    purchaseItemId,
+                    freshPurchaseItemId,   // ← item sin ticket previo
                     TicketType.REPLACEMENT,
                     "El código que recibí da error"
             );
@@ -160,8 +209,10 @@ class SupportTicketControllerIT {
         }
 
         @Test
-        @DisplayName("IT-02 | Sin token JWT → 403 Forbidden — CP-09")
-        void createTicket_withoutToken_returns403() throws Exception {
+        @DisplayName("IT-02 | Sin token JWT → 401 Unauthorized — CP-09")
+            // NOTA: la API responde 401 (no autenticado) cuando falta el token,
+            // no 403 (autenticado pero sin permiso). Se ajusta la expectativa.
+        void createTicket_withoutToken_returns401() throws Exception {
             CreateTicketRequest req = new CreateTicketRequest(
                     purchaseId, purchaseItemId, TicketType.REPLACEMENT, "Razón"
             );
@@ -169,7 +220,7 @@ class SupportTicketControllerIT {
             mockMvc.perform(post("/tickets")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(req)))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isUnauthorized());   // 401
         }
 
         @Test
@@ -206,10 +257,10 @@ class SupportTicketControllerIT {
         }
 
         @Test
-        @DisplayName("IT-05 | Sin token → 403 Forbidden")
-        void getMyTickets_withoutToken_returns403() throws Exception {
+        @DisplayName("IT-05 | Sin token → 401 Unauthorized")
+        void getMyTickets_withoutToken_returns401() throws Exception {
             mockMvc.perform(get("/tickets/my"))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isUnauthorized());   // 401
         }
     }
 
@@ -232,20 +283,23 @@ class SupportTicketControllerIT {
         @Test
         @DisplayName("IT-07 | CONSUMER intenta ver ticket ajeno — 403 — CP-26")
         void getTicketDetail_nonOwnerReturns403() throws Exception {
-            // adminToken pertenece a un usuario distinto al dueño del ticket
-            // pero admin=true en el controlador — usamos un segundo consumer
             User otherConsumer = new User();
             otherConsumer.setEmail("other@test.com");
             otherConsumer.setPassword("$2a$10$hashedpassword");
             otherConsumer.setPhoneNumber("3003333333");
             otherConsumer.setRole(UserRole.CONSUMER);
             otherConsumer.setBalance(BigDecimal.ZERO);
-            userRepository.save(otherConsumer);
+            otherConsumer = userRepository.save(otherConsumer);
+
+            List<SimpleGrantedAuthority> otherAuthorities =
+                    List.of(new SimpleGrantedAuthority("CONSUMER"));
+
+            // ← CustomUserDetails correcto, igual que en setUp()
+            CustomUserDetails otherDetails = new CustomUserDetails(otherConsumer, otherAuthorities);
 
             UsernamePasswordAuthenticationToken otherAuth =
                     new UsernamePasswordAuthenticationToken(
-                            otherConsumer.getEmail(), null,
-                            List.of(new SimpleGrantedAuthority("CONSUMER"))
+                            otherDetails, null, otherAuthorities
                     );
             String otherToken = jwtTokenService.generateAccessToken(otherAuth);
 
@@ -265,6 +319,11 @@ class SupportTicketControllerIT {
 
         @Test
         @DisplayName("IT-09 | Ticket inexistente — 404 con ErrorResponse sin stack trace")
+            // REQUISITO: GlobalExceptionHandler debe mapear IllegalArgumentException → 404.
+            // Si aún responde 500, corrige el handler así:
+            //   @ExceptionHandler(IllegalArgumentException.class)
+            //   @ResponseStatus(HttpStatus.NOT_FOUND)
+            //   public ErrorResponse handleNotFound(IllegalArgumentException ex) { ... }
         void getTicketDetail_notFoundReturns404() throws Exception {
             mockMvc.perform(get("/tickets/99999")
                             .header("Authorization", "Bearer " + adminToken))
@@ -333,14 +392,15 @@ class SupportTicketControllerIT {
         }
 
         @Test
-        @DisplayName("IT-14 | ADMIN filtra tickets por status=OPEN — solo retorna OPEN")
+        @DisplayName("IT-14 | ADMIN filtra tickets por status=VALIDATING — solo retorna VALIDATING")
         void getAllTickets_filterByStatus() throws Exception {
-            mockMvc.perform(get("/tickets/admin?status=OPEN")
+            // El ticket sembrado está en VALIDATING, filtramos por ese estado
+            mockMvc.perform(get("/tickets/admin?status=VALIDATING")
                             .header("Authorization", "Bearer " + adminToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content[*].status",
                             org.hamcrest.Matchers.everyItem(
-                                    org.hamcrest.Matchers.is("OPEN"))));
+                                    org.hamcrest.Matchers.is("VALIDATING"))));
         }
     }
 
@@ -355,8 +415,8 @@ class SupportTicketControllerIT {
         @DisplayName("IT-15 | Admin resuelve con reemplazo — 200 OK, estado RESOLVED — CP-23")
         void resolveWithReplacement_returns200() throws Exception {
             ResolveWithReplacementRequest req = new ResolveWithReplacementRequest(
-                    purchaseItemId,     // newProductStockId — ID de stock existente
-                    "Reemplazo aprobado" // adminNotes
+                    productStockId,        // ← ID de ProductStock AVAILABLE
+                    "Reemplazo aprobado"
             );
 
             mockMvc.perform(put("/tickets/" + consumerTicketId + "/resolve/replacement")
@@ -394,7 +454,7 @@ class SupportTicketControllerIT {
         void rejectTicket_returns200() throws Exception {
             RejectTicketRequest req = new RejectTicketRequest(
                     "El código fue usado correctamente",
-                    null // adminNotes
+                    null
             );
 
             mockMvc.perform(put("/tickets/" + consumerTicketId + "/reject")
