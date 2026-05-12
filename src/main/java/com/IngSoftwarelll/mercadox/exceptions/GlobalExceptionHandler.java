@@ -18,6 +18,7 @@ import org.springframework.web.context.request.WebRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
 @Slf4j
@@ -43,6 +44,13 @@ public class GlobalExceptionHandler {
             BusinessException ex, WebRequest request) {
         log.warn("Business error: {}", ex.getMessage());
         return buildError(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    // En lugar de dejar que Spring explote con 500,
+// puedes agregar un @ExceptionHandler para este caso:
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<String> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        return ResponseEntity.badRequest().body("ID inválido: " + ex.getValue());
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
