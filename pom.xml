@@ -167,6 +167,7 @@
                         -XX:+EnableDynamicAgentLoading
                         -Xshare:off
                     </argLine>
+                    <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
                 </configuration>
             </plugin>
 			<plugin>
