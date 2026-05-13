@@ -1,0 +1,77 @@
+# ─────────────────────────────────────────────────────────────
+# MercadoX — Docker Compose (entorno local de desarrollo)
+#
+# Levanta el backend + PostgreSQL con un solo comando:
+#   docker compose up --build
+#
+# Para detener y eliminar contenedores:
+#   docker compose down
+#
+# Para eliminar también los datos de la BD:
+#   docker compose down -v
+# ─────────────────────────────────────────────────────────────
+services:
+
+  # ── Base de datos PostgreSQL ────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: mercadox-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mercadox
+      POSTGRES_USER: mercadox_user
+      POSTGRES_PASSWORD: mercadox_pass
+    ports:
+      - "5432:5432"       # expuesto localmente para conectar con DBeaver/pgAdmin
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # datos persistentes
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mercadox_user -d mercadox"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend Spring Boot ─────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mercadox-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # Base de datos (apunta al servicio 'db' de arriba)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mercadox
+      SPRING_DATASOURCE_USERNAME: mercadox_user
+      SPRING_DATASOURCE_PASSWORD: mercadox_pass
+
+      # JPA / Hibernate
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "false"
+
+      # Perfil activo
+      SPRING_PROFILES_ACTIVE: prod
+
+      # JWT — cambia este valor por uno seguro en producción
+      JWT_SECRET: "cambia_este_valor_por_un_secreto_seguro_de_al_menos_256_bits"
+      JWT_EXPIRATION_MS: "86400000"
+
+      # Cloudinary — rellena con tus credenciales reales
+      CLOUDINARY_CLOUD_NAME: "tu_cloud_name"
+      CLOUDINARY_API_KEY: "tu_api_key"
+      CLOUDINARY_API_SECRET: "tu_api_secret"
+
+      # Email (SendGrid u otro proveedor)
+      MAIL_HOST: "smtp.sendgrid.net"
+      MAIL_PORT: "587"
+      MAIL_USERNAME: "apikey"
+      MAIL_PASSWORD: "tu_sendgrid_api_key"
+
+    depends_on:
+      db:
+        condition: service_healthy   # espera a que PostgreSQL esté listo
+
+volumes:
+  postgres_data:
+    name: mercadox-postgres-data
