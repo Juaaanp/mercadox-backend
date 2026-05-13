@@ -5,7 +5,8 @@ public class PublicPaths {
         "/auth/**",
         "/products",
         "/productCategories/**",
-        "/products/filter"
+        "/products/filter",
+        "/actuator/prometheus",
 
     };
 }
