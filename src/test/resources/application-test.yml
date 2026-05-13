@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:mercadox_test;DB_CLOSE_DELAY=-1;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: false
+
+jwt:
+  secret: "dGVzdC1zZWNyZXQta2V5LWZvci1jaS1taW5pbXVtLTMyLWJ5dGVz"
+  accessTokenExpiration: 9000000
+
+sendgrid:
+  api-key: test-key-not-used-in-tests
+  from-email: test@test.com
+  from-name: MercadoxTest
+  support-email: support@test.com
+
+logging:
+  level:
+    root: WARN
+    com.mercadox: DEBUG
